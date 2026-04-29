@@ -1,6 +1,6 @@
-# ⚡ jxckyz hub
+# ⚡ Jxckyz hub
 
-**jxckyz hub** is a high-performance script suite designed for a seamless gaming experience. Featuring a clean interface and optimized automation, it’s built to be fast, reliable, and easy to use.
+**Jxckyz hub** is a high-performance script suite designed for a seamless gaming experience. Featuring a clean interface and optimized automation, it’s built to be fast, reliable, and easy to use.
 
 ## ✨ Key Features
 * 🚀 **High Performance:** Lightweight execution with minimal impact on frames (FPS).
@@ -18,8 +18,8 @@ loadstring(game:HttpGet("[https://raw.githubusercontent.com/rxinoussouls/Jxckyz/
 • 🖥️ Framework: WindUI — A modern, acrylic-style interface
 • ⚙️ Category: Gaming Automation & UI/UX Design
 🤝 Credits & Resources
-• 🧑‍💻 Lead Developer: jxckyz
+• 🧑‍💻 Lead Developer: Jxckyz
 • 🎨 Interface powered by: WindUI by Footagesus
 • Special thanks to the WindUI team for the beautiful documentation and library.
 
-Note: Maintained by jxckyz. Stay tuned for future updates and feature enhancements!
+Note: Maintained by Jxckyz. Stay tuned for future updates and feature enhancements!
