@@ -10,14 +10,16 @@
 ## 🎮 How to Use
 Copy and paste the following script into your preferred executor:
 
-```lua example script
+```lua
 loadstring(game:HttpGet("[https://raw.githubusercontent.com/rxinoussouls/Jxckyz/main/EAG](https://raw.githubusercontent.com/rxinoussouls/Jxckyz/main/EAG)"))()
 
-🛠️ Technical Details
-• Language: Luau (Lua)
-• UI Framework: WindUI by Footagesus
-• Category: Automation & User Interface
-🤝 Credits
-• Lead Developer: jxckyz
-• UI Library: Credits to the respective UI library creators , github ui library https://github.com/Footagesus/WindUI , website https://footagesus.github.io/WindUI-Docs/
-Maintained by jxckyz. For updates
+🛠️ Technical Specifications
+• 📂 Language: Luau (Optimized Lua)
+• 🖥️ Framework: WindUI — A modern, acrylic-style interface
+• ⚙️ Category: Gaming Automation & UI/UX Design
+🤝 Credits & Resources
+• 🧑‍💻 Lead Developer: jxckyz
+• 🎨 Interface powered by: WindUI by Footagesus
+• Special thanks to the WindUI team for the beautiful documentation and library.
+
+Note: Maintained by jxckyz. Stay tuned for future updates and feature enhancements!
