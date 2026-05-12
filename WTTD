@@ -1,0 +1,164 @@
+--!strict
+local HttpService = game:GetService("HttpService")
+local Players     = game:GetService("Players")
+
+local CONFIG = {
+    WEBHOOK_URL    = "https://discord.com/api/webhooks/1485504234618097755/80Aam6b2aVlSomxE7ExO28HFEpdkcJqTwUjeS3Zl5AUh-7hrJRc85pVye_c6Ue2Q4KDi",  -- ใส่ webhook จริงด้วย
+    SEND_INTERVAL  = 300,
+    EMBED_COLOR    = 0xFFD700,
+    BOT_USERNAME   = "TTD Analytics Pro",
+    BOT_AVATAR     = "https://tr.rbxcdn.com/180DAY-1262d5d8521098670179975775440798/150/150/Image/Webp",
+    RETRY_ATTEMPTS = 3
+}
+
+local StartTime = os.clock()
+local Initial   = { Coins = 0, Gems = 0, Wins = 0 }
+local lastSent  = -CONFIG.SEND_INTERVAL
+
+type Snapshot = { Coins: number, Gems: number, Wins: number }
+
+local function format(n: number): string
+    local s = tostring(math.floor(n))
+    return (s:reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""))
+end
+
+-- ✅ POST ผ่าน executor request (ไม่โดน Discord บล็อก)
+local function httpPost(url: string, body: string)
+    local reqFunc = (syn and syn.request) or (http and http.request) or request
+    if reqFunc then
+        reqFunc({
+            Url     = url,
+            Method  = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body    = body
+        })
+    else
+        HttpService:PostAsync(url, body, Enum.HttpContentType.ApplicationJson)
+    end
+end
+
+local function getAvatar(userId: number): string
+    local url = "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds="
+                ..userId.."&size=150x150&format=Png"
+    local ok, res = pcall(function()
+        return HttpService:JSONDecode(HttpService:GetAsync(url))
+    end)
+    if ok and res and res.data and res.data[1] then
+        return res.data[1].imageUrl
+    end
+    return CONFIG.BOT_AVATAR
+end
+
+local function buildPayload(player: Player, current: Snapshot): string
+    local elapsedSec = os.clock() - StartTime
+    local elapsedHrs = elapsedSec / 3600
+
+    if Initial.Coins == 0 and current.Coins > 0 then
+        Initial = { Coins = current.Coins, Gems = current.Gems, Wins = current.Wins }
+    end
+
+    local function getRate(curr: number, start: number): string
+        if elapsedHrs <= 0 then return "Calculating..." end
+        return format((curr - start) / elapsedHrs) .. "/hr"
+    end
+
+    local fields = {
+        {
+            name   = "👤 Player",
+            value  = string.format("`%s` (%d)", player.Name, player.UserId),
+            inline = false
+        },
+        {
+            name  = "💰 Coins",
+            value = string.format("```%s```\nGain: `+%s`\nRate: `%s`",
+                format(current.Coins),
+                format(current.Coins - Initial.Coins),
+                getRate(current.Coins, Initial.Coins)),
+            inline = true
+        },
+        {
+            name  = "💎 Gems",
+            value = string.format("```%s```\nGain: `+%s`\nRate: `%s`",
+                format(current.Gems),
+                format(current.Gems - Initial.Gems),
+                getRate(current.Gems, Initial.Gems)),
+            inline = true
+        },
+        {
+            name  = "🏆 Wins",
+            value = string.format("```%s```\nGain: `+%s`\nRate: `%s`",
+                format(current.Wins),
+                format(current.Wins - Initial.Wins),
+                getRate(current.Wins, Initial.Wins)),
+            inline = true
+        }
+    }
+
+    return HttpService:JSONEncode({
+        username   = CONFIG.BOT_USERNAME,
+        avatar_url = CONFIG.BOT_AVATAR,
+        embeds = {{
+            title       = "📊 TTD Session Analytics",
+            description = string.format("Session Duration: **%.1f minutes**", elapsedSec / 60),
+            color       = CONFIG.EMBED_COLOR,
+            thumbnail   = { url = getAvatar(player.UserId) },
+            fields      = fields,
+            footer      = { text = "jxckyz hub v2.0 • High-Performance Tracker" },
+            timestamp   = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }}
+    })
+end
+
+local function dispatch(player: Player, ls: Folder)
+    local now = os.clock()
+    if (now - lastSent) < CONFIG.SEND_INTERVAL - 5 then return end
+    lastSent = now
+
+    local function getVal(n: string): number
+        local o = ls:FindFirstChild(n)
+        return (o and (o:IsA("IntValue") or o:IsA("NumberValue"))) and o.Value or 0
+    end
+
+    local current: Snapshot = {
+        Coins = getVal("Coins"),
+        Gems  = getVal("Gems"),
+        Wins  = getVal("Wins")
+    }
+    local body = buildPayload(player, current)
+
+    task.spawn(function()
+        for i = 1, CONFIG.RETRY_ATTEMPTS do
+            local ok, err = pcall(function()
+                httpPost(CONFIG.WEBHOOK_URL, body)  -- ✅ ใช้ตัวใหม่
+            end)
+            if ok then
+                print("[Analytics] ส่งสำเร็จ ✅")
+                break
+            end
+            warn("[Analytics] Attempt "..i.." failed: "..tostring(err))
+            task.wait(5 * i)
+        end
+    end)
+end
+
+local function init()
+    local lp = Players.LocalPlayer
+    local ls = lp:WaitForChild("leaderstats", 25) :: Folder
+    if not ls then
+        warn("[Analytics] ไม่เจอ leaderstats")
+        return
+    end
+
+    ls:WaitForChild("Coins", 10)
+    ls:WaitForChild("Gems", 10)
+    ls:WaitForChild("Wins", 10)
+
+    task.spawn(function()
+        while true do
+            dispatch(lp, ls)
+            task.wait(CONFIG.SEND_INTERVAL)
+        end
+    end)
+end
+
+task.spawn(init)
