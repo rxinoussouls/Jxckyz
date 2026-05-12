@@ -103,7 +103,7 @@ local function buildPayload(player: Player, current: Snapshot): string
             color       = CONFIG.EMBED_COLOR,
             thumbnail   = { url = getAvatar(player.UserId) },
             fields      = fields,
-            footer      = { text = "jxckyz hub v2.0 • High-Performance Tracker" },
+            footer      = { text = "Jxckyz hub • Webhook Toilet Tower Defense" },
             timestamp   = os.date("!%Y-%m-%dT%H:%M:%SZ")
         }}
     })
@@ -129,10 +129,10 @@ local function dispatch(player: Player, ls: Folder)
     task.spawn(function()
         for i = 1, CONFIG.RETRY_ATTEMPTS do
             local ok, err = pcall(function()
-                httpPost(CONFIG.WEBHOOK_URL, body)  -- ✅ ใช้ตัวใหม่
+                httpPost(CONFIG.WEBHOOK_URL, body)  -- ใช้ตัวใหม่
             end)
             if ok then
-                print("[Analytics] ส่งสำเร็จ ✅")
+                print("[Analytics] ส่งสำเร็จ ")
                 break
             end
             warn("[Analytics] Attempt "..i.." failed: "..tostring(err))
