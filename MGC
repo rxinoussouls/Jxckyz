@@ -1,20 +1,22 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local player = game:GetService("Players").LocalPlayer
-local Window = Rayfield:CreateWindow({Name = "Jxckyz Auto Spin", LoadingTitle = "Loading...", LoadingSubtitle = "Automation"})
+local Window = Rayfield:CreateWindow({Name = "Auto Spin Pro", LoadingTitle = "Loading Automation...", LoadingSubtitle = "by Gemini"})
 local MainTab = Window:CreateTab("Main", nil)
 
--- ตัวแปรการตั้งค่า
+-- ตัวแปรสถานะ
 local AutoFarmEnabled = false
-local SelectedRarities = {} -- เก็บ List ของ Rarity ที่ยอมรับ
+local SelectedRarities = {} 
 
--- ฟังก์ชันหา Plot ตัวเอง
+-- ฟังก์ชันค้นหา Plot ของผู้ใช้
 local function GetMyPlot()
-    local plotsFolder = workspace.Main.Plots
+    local plotsFolder = workspace.Main:FindFirstChild("Plots")
+    if not plotsFolder then return nil end
+    
     for i = 1, 8 do
         local plot = plotsFolder:FindFirstChild("Plot" .. i)
         if plot and plot:FindFirstChild("MiddlePart") and plot.MiddlePart:FindFirstChild("PlotUI") then
-            local text = plot.MiddlePart.PlotUI.NameText.Text
-            if string.find(text, player.Name) then
+            local textLabel = plot.MiddlePart.PlotUI:FindFirstChild("NameText")
+            if textLabel and string.find(textLabel.Text, player.Name) then
                 return plot
             end
         end
@@ -22,26 +24,22 @@ local function GetMyPlot()
     return nil
 end
 
--- UI
+-- UI Setup
 MainTab:CreateToggle({
     Name = "Enable Auto Farm",
+    CurrentValue = false,
     Callback = function(Value) AutoFarmEnabled = Value end
 })
 
--- การสร้าง Dropdown แบบเลือกได้หลายค่า (Multi-select)
 MainTab:CreateDropdown({
     Name = "Select Rarities to Take",
     Options = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"},
     CurrentOption = {"Legendary", "Mythic"},
-    Multiple = true, -- ใส่ตัวนี้เพื่อให้เลือกได้หลายค่า
-    Callback = function(Options)
-        -- ในโหมด Multiple, Options จะเป็น Table ของค่าที่เลือก
-        SelectedRarities = Options 
-    end,
+    MultipleOptions = true, -- ใช้ MultipleOptions = true ตามเอกสารล่าสุด
+    Callback = function(Options) SelectedRarities = Options end
 })
 
-
--- ลูปหลัก
+-- ลูปหลักการทำงาน
 task.spawn(function()
     while true do
         if AutoFarmEnabled then
@@ -49,24 +47,28 @@ task.spawn(function()
             if myPlot then
                 local spinPads = myPlot:FindFirstChild("SpinPads")
                 if spinPads then
+                    -- วนลูป Pad 1 ถึง 9
                     for i = 1, 9 do
                         local pad = spinPads:FindFirstChild("Pad" .. i)
                         if pad and pad:FindFirstChild("OutPart") then
                             local infoFrame = pad.OutPart:FindFirstChild("InfoUI") and pad.OutPart.InfoUI:FindFirstChild("InfoFrame")
                             
                             if infoFrame then
-                                local rarity = infoFrame.RarityText.Text
+                                -- ดึงค่า Rarity จาก TextLabel
+                                local currentRarity = infoFrame.RarityText.Text
                                 
-                                -- Spin & Reveal
+                                -- 1. สั่ง Spin และ Reveal ก่อนเสมอ
                                 local SpinService = game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF")
-                                SpinService.Spin:InvokeServer()
-                                SpinService.Reveal:InvokeServer()
+                                pcall(function()
+                                    SpinService.Spin:InvokeServer()
+                                    SpinService.Reveal:InvokeServer()
+                                end)
                                 
-                                -- เช็ค Rarity เพื่อกด Take
-                                for _, allowedRarity in pairs(SelectedRarities) do
-                                    if string.find(rarity, allowedRarity) then
+                                -- 2. เช็คว่า Rarity ตรงกับที่เลือกไว้ไหม
+                                for _, allowed in pairs(SelectedRarities) do
+                                    if string.find(currentRarity, allowed) then
                                         local prompt = pad.OutPart:FindFirstChild("TakePrompt")
-                                        if prompt then
+                                        if prompt and prompt:IsA("ProximityPrompt") then
                                             fireproximityprompt(prompt)
                                         end
                                         break
@@ -78,6 +80,6 @@ task.spawn(function()
                 end
             end
         end
-        task.wait(1)
+        task.wait(1.5) -- หน่วงเวลาเพื่อความเสถียร
     end
 end)
