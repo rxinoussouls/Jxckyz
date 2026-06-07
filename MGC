@@ -1,61 +1,77 @@
--- โหลด Rayfield UI
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
--- ตั้งค่า Window
-local Window = Rayfield:CreateWindow({
-    Name = "Auto Spin Farm",
-    LoadingTitle = "Script Loaded",
-    LoadingSubtitle = "by Gemini",
-    KeySystem = false
-})
-
--- สร้าง Tab
+local player = game:GetService("Players").LocalPlayer
+local Window = Rayfield:CreateWindow({Name = "Jxckyz Auto Spin", LoadingTitle = "Loading...", LoadingSubtitle = "Automation"})
 local MainTab = Window:CreateTab("Main", nil)
 
--- อ้างอิง Services
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local SpinService = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF")
-
-local SpinRF = SpinService:WaitForChild("Spin")
-local RevealRF = SpinService:WaitForChild("Reveal")
-local TakeRF = SpinService:WaitForChild("Take")
-
--- ตัวแปรสถานะ
+-- ตัวแปรการตั้งค่า
 local AutoFarmEnabled = false
-local SelectedPad = "Pad1"
+local SelectedRarities = {} -- เก็บ List ของ Rarity ที่ยอมรับ
 
--- ฟังก์ชัน Loop
+-- ฟังก์ชันหา Plot ตัวเอง
+local function GetMyPlot()
+    local plotsFolder = workspace.Main.Plots
+    for i = 1, 8 do
+        local plot = plotsFolder:FindFirstChild("Plot" .. i)
+        if plot and plot:FindFirstChild("MiddlePart") and plot.MiddlePart:FindFirstChild("PlotUI") then
+            local text = plot.MiddlePart.PlotUI.NameText.Text
+            if string.find(text, player.Name) then
+                return plot
+            end
+        end
+    end
+    return nil
+end
+
+-- UI
+MainTab:CreateToggle({
+    Name = "Enable Auto Farm",
+    Callback = function(Value) AutoFarmEnabled = Value end
+})
+
+MainTab:CreateMultiDropdown({
+    Name = "Select Rarities to Take",
+    Options = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"},
+    CurrentOption = {"Legendary", "Mythic"},
+    Callback = function(Options) SelectedRarities = Options end
+})
+
+-- ลูปหลัก
 task.spawn(function()
     while true do
         if AutoFarmEnabled then
-            pcall(function()
-                SpinRF:InvokeServer()
-                RevealRF:InvokeServer()
-                TakeRF:InvokeServer(SelectedPad)
-            end)
+            local myPlot = GetMyPlot()
+            if myPlot then
+                local spinPads = myPlot:FindFirstChild("SpinPads")
+                if spinPads then
+                    for i = 1, 9 do
+                        local pad = spinPads:FindFirstChild("Pad" .. i)
+                        if pad and pad:FindFirstChild("OutPart") then
+                            local infoFrame = pad.OutPart:FindFirstChild("InfoUI") and pad.OutPart.InfoUI:FindFirstChild("InfoFrame")
+                            
+                            if infoFrame then
+                                local rarity = infoFrame.RarityText.Text
+                                
+                                -- Spin & Reveal
+                                local SpinService = game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF")
+                                SpinService.Spin:InvokeServer()
+                                SpinService.Reveal:InvokeServer()
+                                
+                                -- เช็ค Rarity เพื่อกด Take
+                                for _, allowedRarity in pairs(SelectedRarities) do
+                                    if string.find(rarity, allowedRarity) then
+                                        local prompt = pad.OutPart:FindFirstChild("TakePrompt")
+                                        if prompt then
+                                            fireproximityprompt(prompt)
+                                        end
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
         end
-        task.wait(0.5) -- ปรับความเร็วได้ที่นี่
+        task.wait(1)
     end
 end)
-
--- UI: Toggle เปิด-ปิด
-MainTab:CreateToggle({
-    Name = "Auto Spin & Take",
-    CurrentValue = false,
-    Flag = "AutoFarmToggle",
-    Callback = function(Value)
-        AutoFarmEnabled = Value
-    end,
-})
-
--- UI: เลือก Pad
-MainTab:CreateDropdown({
-    Name = "Select Pad",
-    Options = {"Pad1", "Pad2", "Pad3", "Pad4"},
-    CurrentOption = {"Pad1"},
-    Callback = function(Option)
-        SelectedPad = Option[1]
-    end,
-})
-
-Rayfield:LoadConfiguration()
