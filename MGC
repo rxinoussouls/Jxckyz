@@ -1,0 +1,10 @@
+ทำ Auto Spin Reveal เเละ Take Pad1 - Pad4 
+
+game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF"):WaitForChild("Spin"):InvokeServer()
+
+game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF"):WaitForChild("Reveal"):InvokeServer()
+
+local args = {
+	"Pad1" มี Pad1 - Pad4
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF"):WaitForChild("Take"):InvokeServer(unpack(args))
