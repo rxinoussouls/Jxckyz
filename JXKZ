@@ -1,8 +1,9 @@
 local placeId = game.PlaceId
 print("Jxckyz Hub: Current Place ID is " .. tostring(placeId))
 local games = {
-    [18870629243] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/LP",
-    [103311003648859] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/LBG",
+    [18870629243] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/LP", -- [🔥Release]Legend Piece
+    [103311003648859] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/LBG", -- Lucky block game
+    [101736964164901] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/MGC", -- [💻]My Gaming Cafe!
 }
 if games[placeId] then
     print("Jxckyz Hub: Game detected! Loading script...")
@@ -16,4 +17,4 @@ if games[placeId] then
     end
 else
     warn("Jxckyz Hub: Game ID (" .. tostring(placeId) .. ") is not supported.")
-end
+endi
