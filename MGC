@@ -1,10 +1,61 @@
-ทำ Auto Spin Reveal เเละ Take Pad1 - Pad4 
+-- โหลด Rayfield UI
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF"):WaitForChild("Spin"):InvokeServer()
+-- ตั้งค่า Window
+local Window = Rayfield:CreateWindow({
+    Name = "Auto Spin Farm",
+    LoadingTitle = "Script Loaded",
+    LoadingSubtitle = "by Gemini",
+    KeySystem = false
+})
 
-game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF"):WaitForChild("Reveal"):InvokeServer()
+-- สร้าง Tab
+local MainTab = Window:CreateTab("Main", nil)
 
-local args = {
-	"Pad1" มี Pad1 - Pad4
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF"):WaitForChild("Take"):InvokeServer(unpack(args))
+-- อ้างอิง Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SpinService = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF")
+
+local SpinRF = SpinService:WaitForChild("Spin")
+local RevealRF = SpinService:WaitForChild("Reveal")
+local TakeRF = SpinService:WaitForChild("Take")
+
+-- ตัวแปรสถานะ
+local AutoFarmEnabled = false
+local SelectedPad = "Pad1"
+
+-- ฟังก์ชัน Loop
+task.spawn(function()
+    while true do
+        if AutoFarmEnabled then
+            pcall(function()
+                SpinRF:InvokeServer()
+                RevealRF:InvokeServer()
+                TakeRF:InvokeServer(SelectedPad)
+            end)
+        end
+        task.wait(0.5) -- ปรับความเร็วได้ที่นี่
+    end
+end)
+
+-- UI: Toggle เปิด-ปิด
+MainTab:CreateToggle({
+    Name = "Auto Spin & Take",
+    CurrentValue = false,
+    Flag = "AutoFarmToggle",
+    Callback = function(Value)
+        AutoFarmEnabled = Value
+    end,
+})
+
+-- UI: เลือก Pad
+MainTab:CreateDropdown({
+    Name = "Select Pad",
+    Options = {"Pad1", "Pad2", "Pad3", "Pad4"},
+    CurrentOption = {"Pad1"},
+    Callback = function(Option)
+        SelectedPad = Option[1]
+    end,
+})
+
+Rayfield:LoadConfiguration()
