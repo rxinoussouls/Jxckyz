@@ -28,12 +28,18 @@ MainTab:CreateToggle({
     Callback = function(Value) AutoFarmEnabled = Value end
 })
 
-MainTab:CreateMultiDropdown({
+-- การสร้าง Dropdown แบบเลือกได้หลายค่า (Multi-select)
+MainTab:CreateDropdown({
     Name = "Select Rarities to Take",
     Options = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"},
     CurrentOption = {"Legendary", "Mythic"},
-    Callback = function(Options) SelectedRarities = Options end
+    Multiple = true, -- ใส่ตัวนี้เพื่อให้เลือกได้หลายค่า
+    Callback = function(Options)
+        -- ในโหมด Multiple, Options จะเป็น Table ของค่าที่เลือก
+        SelectedRarities = Options 
+    end,
 })
+
 
 -- ลูปหลัก
 task.spawn(function()
