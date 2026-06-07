@@ -1,85 +1,81 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local player = game:GetService("Players").LocalPlayer
-local Window = Rayfield:CreateWindow({Name = "Auto Spin Pro", LoadingTitle = "Loading Automation...", LoadingSubtitle = "by Gemini"})
-local MainTab = Window:CreateTab("Main", nil)
+local Window = Rayfield:CreateWindow({Name = "Auto Spin Pro", LoadingTitle = "Monitoring Plot...", LoadingSubtitle = "Auto-Stop Enabled"})
+local MainTab = Window:CreateTab("Dashboard", nil)
 
--- ตัวแปรสถานะ
 local AutoFarmEnabled = false
-local SelectedRarities = {} 
+local SelectedRarities = {}
+local InfoLabels = {}
 
--- ฟังก์ชันค้นหา Plot ของผู้ใช้
-local function GetMyPlot()
-    local plotsFolder = workspace.Main:FindFirstChild("Plots")
-    if not plotsFolder then return nil end
-    
-    for i = 1, 8 do
-        local plot = plotsFolder:FindFirstChild("Plot" .. i)
-        if plot and plot:FindFirstChild("MiddlePart") and plot.MiddlePart:FindFirstChild("PlotUI") then
-            local textLabel = plot.MiddlePart.PlotUI:FindFirstChild("NameText")
-            if textLabel and string.find(textLabel.Text, player.Name) then
-                return plot
-            end
-        end
-    end
-    return nil
-end
+for i = 1, 9 do InfoLabels[i] = MainTab:CreateLabel("Pad " .. i .. ": Waiting...") end
 
--- UI Setup
-MainTab:CreateToggle({
+local Toggle = MainTab:CreateToggle({
     Name = "Enable Auto Farm",
     CurrentValue = false,
     Callback = function(Value) AutoFarmEnabled = Value end
 })
 
 MainTab:CreateDropdown({
-    Name = "Select Rarities to Take",
+    Name = "Select Target Rarity (Auto-Stop)",
     Options = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"},
     CurrentOption = {"Legendary", "Mythic"},
-    MultipleOptions = true, -- ใช้ MultipleOptions = true ตามเอกสารล่าสุด
+    MultipleOptions = true,
     Callback = function(Options) SelectedRarities = Options end
 })
 
--- ลูปหลักการทำงาน
 task.spawn(function()
     while true do
         if AutoFarmEnabled then
-            local myPlot = GetMyPlot()
+            local myPlot = nil
+            local plots = workspace:FindFirstChild("Main") and workspace.Main:FindFirstChild("Plots")
+            
+            -- หา Plot
+            if plots then
+                for i = 1, 8 do
+                    local p = plots:FindFirstChild("Plot" .. i)
+                    if p and p.MiddlePart:FindFirstChild("PlotUI") and string.find(p.MiddlePart.PlotUI.NameText.Text, player.Name) then
+                        myPlot = p
+                        break
+                    end
+                end
+            end
+
             if myPlot then
                 local spinPads = myPlot:FindFirstChild("SpinPads")
-                if spinPads then
-                    -- วนลูป Pad 1 ถึง 9
-                    for i = 1, 9 do
-                        local pad = spinPads:FindFirstChild("Pad" .. i)
-                        if pad and pad:FindFirstChild("OutPart") then
-                            local infoFrame = pad.OutPart:FindFirstChild("InfoUI") and pad.OutPart.InfoUI:FindFirstChild("InfoFrame")
-                            
-                            if infoFrame then
-                                -- ดึงค่า Rarity จาก TextLabel
-                                local currentRarity = infoFrame.RarityText.Text
+                for j = 1, 9 do
+                    local pad = spinPads and spinPads:FindFirstChild("Pad" .. j)
+                    local infoFrame = pad and pad.OutPart:FindFirstChild("InfoUI") and pad.OutPart.InfoUI:FindFirstChild("InfoFrame")
+                    
+                    if infoFrame then
+                        local rarity = infoFrame.RarityText.Text
+                        InfoLabels[j]:Set("Pad " .. j .. ": " .. infoFrame.NameText.Text .. " [" .. rarity .. "]")
+                        
+                        -- เช็ค Rarity
+                        for _, allowed in pairs(SelectedRarities) do
+                            if string.find(rarity, allowed) then
+                                -- เจอของที่ต้องการ!
+                                fireproximityprompt(pad.OutPart.TakePrompt)
                                 
-                                -- 1. สั่ง Spin และ Reveal ก่อนเสมอ
-                                local SpinService = game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF")
-                                pcall(function()
-                                    SpinService.Spin:InvokeServer()
-                                    SpinService.Reveal:InvokeServer()
-                                end)
-                                
-                                -- 2. เช็คว่า Rarity ตรงกับที่เลือกไว้ไหม
-                                for _, allowed in pairs(SelectedRarities) do
-                                    if string.find(currentRarity, allowed) then
-                                        local prompt = pad.OutPart:FindFirstChild("TakePrompt")
-                                        if prompt and prompt:IsA("ProximityPrompt") then
-                                            fireproximityprompt(prompt)
-                                        end
-                                        break
-                                    end
-                                end
+                                -- หยุดทุกอย่าง
+                                AutoFarmEnabled = false
+                                Toggle:Set(false) -- อัปเดต UI ให้ปิดเอง
+                                Rayfield:Notify({Title = "Success!", Content = "Found " .. rarity .. "! Stopping farm.", Duration = 5})
+                                break
                             end
                         end
                     end
                 end
+                
+                -- ถ้า AutoFarm ยังเปิดอยู่ ให้ Spin/Reveal ต่อ
+                if AutoFarmEnabled then
+                    local SpinService = game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.7.0"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("SpinService"):WaitForChild("RF")
+                    pcall(function()
+                        SpinService.Spin:InvokeServer()
+                        SpinService.Reveal:InvokeServer()
+                    end)
+                end
             end
         end
-        task.wait(1.5) -- หน่วงเวลาเพื่อความเสถียร
+        task.wait(0.3)
     end
 end)
