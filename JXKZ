@@ -17,4 +17,4 @@ if games[placeId] then
     end
 else
     warn("Jxckyz Hub: Game ID (" .. tostring(placeId) .. ") is not supported.")
-endi
+end
