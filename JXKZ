@@ -4,6 +4,7 @@ local games = {
     [18870629243] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/LP", -- [🔥Release]Legend Piece
     [103311003648859] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/LBG", -- Lucky block game
     [101736964164901] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/MGC", -- [💻]My Gaming Cafe!
+    [74193805629461] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/%2B1MPC" , --+ 1 Mine Per Click⛏️
 }
 if games[placeId] then
     print("Jxckyz Hub: Game detected! Loading script...")
