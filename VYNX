@@ -1,21 +1,52 @@
 local placeId = game.PlaceId
-print("Jxckyz Hub: Current Place ID is " .. tostring(placeId))
+
 local games = {
-    [18870629243] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/LP", -- [🔥Release]Legend Piece
-    [103311003648859] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/LBG", -- Lucky block game
-    [101736964164901] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/MGC", -- [💻]My Gaming Cafe!
-    [74193805629461] = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/%2B1MPC" , --+ 1 Mine Per Click⛏️
+    [74193805629461]      = { name = "+1 Mine Per Click ⛏️",     url = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/%2B1MPC"  },
 }
-if games[placeId] then
-    print("Jxckyz Hub: Game detected! Loading script...")
-    local success, result = pcall(function()
-        return loadstring(game:HttpGet(games[placeId]))()
-    end)
-    if success then
-        print("Jxckyz Hub: Script executed successfully.")
-    else
-        warn("Jxckyz Hub: Failed to execute script: " .. tostring(result))
+
+local MAX_RETRIES = 3
+local RETRY_DELAY = 1.5
+
+local function log(msg) print("[VYNX] " .. msg) end
+local function warnLog(msg) warn("[VYNX] " .. msg) end
+
+local function fetchScript(url)
+    for attempt = 1, MAX_RETRIES do
+        local ok, result = pcall(function() return game:HttpGet(url) end)
+        if ok and result and #result > 0 then
+            return result
+        end
+        warnLog(("Fetch attempt %d/%d failed%s"):format(attempt, MAX_RETRIES, ok and "" or (": " .. tostring(result))))
+        if attempt < MAX_RETRIES then task.wait(RETRY_DELAY) end
     end
+    return nil
+end
+
+local entry = games[placeId]
+
+if not entry then
+    warnLog(("Place ID %d is not supported."):format(placeId))
+    return
+end
+
+log(("Detected game: %s (Place %d)"):format(entry.name, placeId))
+log("Fetching script...")
+
+local source = fetchScript(entry.url)
+if not source then
+    warnLog(("Failed to fetch script for %s after %d attempts."):format(entry.name, MAX_RETRIES))
+    return
+end
+
+local compiled, compileErr = loadstring(source)
+if not compiled then
+    warnLog("Failed to compile script: " .. tostring(compileErr))
+    return
+end
+
+local ok, runErr = pcall(compiled)
+if ok then
+    log(("%s loaded successfully."):format(entry.name))
 else
-    warn("Jxckyz Hub: Game ID (" .. tostring(placeId) .. ") is not supported.")
+    warnLog(("%s failed during execution: %s"):format(entry.name, tostring(runErr)))
 end
