@@ -1,7 +1,7 @@
 local placeId = game.PlaceId
 
 local games = {
-    [124216119978534]      = { name = "Ride A Pet",     url = "https://api.jnkie.com/api/v1/luascripts/public/f24bce221ee7e8ac777b6182b3da3fa404a51a1d269a9b6145b7034b6089b1bc/download"  },
+    [124216119978534]      = { name = "Ride A Pet",     url = "https://api.jnkie.com/api/v1/loaders/public/5fc13d057d1fbab1d19a1b27c96359055d076196220e05e2f6efea95b75e609b/download"  },
 }
 
 local MAX_RETRIES = 3
