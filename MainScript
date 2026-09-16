@@ -1,7 +1,7 @@
 local placeId = game.PlaceId
 
 local games = {
-    [74193805629461]      = { name = "+1 Mine Per Click ⛏️",     url = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/%2B1MPC"  },
+    [124216119978534]      = { name = "Ride A Pet",     url = "https://raw.githubusercontent.com/rxinoussouls/Jxckyz/refs/heads/main/RAP"  },
 }
 
 local MAX_RETRIES = 3
